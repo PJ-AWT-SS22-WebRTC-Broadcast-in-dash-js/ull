@@ -18,7 +18,6 @@ module.exports = [
   `-init_seg_name`, `init-stream-$RepresentationID$.m4s`,
   `-window_size`, `5`,
   `-extra_window_size`, `10`,
-  `-remove_at_exit`, `1`,
   `-adaptation_sets`, `id=0,streams=v id=1,streams=a`,
   `-f`, `dash`,
   `http://localhost:3104/manifest.mpd`

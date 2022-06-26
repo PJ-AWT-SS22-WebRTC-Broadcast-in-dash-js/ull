@@ -22,11 +22,11 @@ class UllServer {
     this.acceptUpload()
     this.acceptDownload()
 
-    this.app.post('/start/:videoname', (req, res, next) => {
+    this.app.post('/start/:videoname/:save', (req, res, next) => {
       if (this.instance) {
         return res.status(200).json({ message: 'already started' })
       }
-      this.startTranscoding(req.params.videoname)
+      this.startTranscoding(req.params.videoname, req.params.save)
       return res.status(200).json({ message: `started manifest is at http://localhost:${PORT}/manifest.mpd` })
     })
 
@@ -43,10 +43,15 @@ class UllServer {
     })
   }
 
-  startTranscoding (videoname) {
+  startTranscoding (videoname, save) {
     // Add the videoname into config as input
     config.splice(1, 0, "-i")
     config.splice(2, 0, videoname)
+    // Save the mpd files
+    if (save == "1") {
+        config.splice(-5, 0, `-remove_at_exit`)
+        config.splice(-5, 0, `1`)
+    }
     console.log(config)
 
     this.instance = childProcess.spawn('ffmpeg', config)
