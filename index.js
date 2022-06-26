@@ -3,6 +3,8 @@ const cors = require('cors')
 const compression = require('compression')
 const childProcess = require('child_process')
 const config = require('./cmd')
+const http = require('http')
+const { Server } = require("socket.io")
 
 const CACHE_DURATION = 3000 * 1000
 const TIME_SLEEP_MS = 50
@@ -13,7 +15,14 @@ class UllServer {
   start () {
     this.app = express()
     this.app.use(cors())
+    this.app.use(express.json());
     this.app.use(compression())
+    this.server = http.createServer(this.app);
+    this.io = new Server(this.server, {
+      cors: {
+        origin: "*",
+      }
+    })
     this.cache = {}
     this.listen()
   }
@@ -22,13 +31,24 @@ class UllServer {
     this.acceptUpload()
     this.acceptDownload()
 
-    this.app.post('/start/:videoname/:save', (req, res, next) => {
+    this.app.post('/start', (req, res, next) => {
       if (this.instance) {
         return res.status(200).json({ message: 'already started' })
       }
-      this.startTranscoding(req.params.videoname, req.params.save)
+      console.log(req.body)
+      this.startTranscoding(req.body.videoname, req.body.save)
       return res.status(200).json({ message: `started manifest is at http://localhost:${PORT}/manifest.mpd` })
     })
+
+    this.io.on('connection', (socket) => {
+      console.log('a user connected');
+      socket.on('disconnect', () => {
+        console.log('user disconnected');
+      });
+      socket.on('data', function (data) {
+        console.log("[data]", data);
+      });
+    });
 
     this.app.post('/stop', (req, res, next) => {
       if (!this.instance) {
@@ -38,7 +58,7 @@ class UllServer {
       return res.status(200).json({ message: 'stopped' })
     })
 
-    this.server = this.app.listen(PORT, () => {
+    this.server.listen(PORT, () => {
       console.log('ULL server listening... port', PORT, 'POST to /start to start the transcoder')
     })
   }
@@ -244,6 +264,8 @@ class UllServer {
   stop () {
     this.server.close()
   }
+
+
 }
 
 const server = new UllServer()
