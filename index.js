@@ -20,7 +20,7 @@ class UllServer {
     this.server = http.createServer(this.app);
     this.io = new Server(this.server, {
       cors: {
-        origin: "*",
+        origin: "*"
       }
     })
     this.cache = {}
@@ -37,6 +37,7 @@ class UllServer {
       }
       console.log(req.body)
       this.startTranscoding(req.body.videoname, req.body.save)
+
       return res.status(200).json({ message: `started manifest is at http://localhost:${PORT}/manifest.mpd` })
     })
 
@@ -44,9 +45,15 @@ class UllServer {
       console.log('a user connected');
       socket.on('disconnect', () => {
         console.log('user disconnected');
+        if (this.instance) {
+          this.instance.kill("SIGINT");
+        }
       });
-      socket.on('data', function (data) {
+      socket.on('data', (data) => {
         console.log("[data]", data);
+        if (this.instance) {
+          this.instance.stdin.write(data);
+        }
       });
     });
 
@@ -68,7 +75,7 @@ class UllServer {
     config.splice(1, 0, "-i")
     config.splice(2, 0, videoname)
     // Save the mpd files
-    if (save == "1") {
+    if (save != "1") {
         config.splice(-5, 0, `-remove_at_exit`)
         config.splice(-5, 0, `1`)
     }
@@ -89,6 +96,9 @@ class UllServer {
     this.instance.stderr.on('data', (data) => 
         console.log("STDERR: ", data.toString())
     );
+    this.instance.stdin.on('error', (e) => {
+      console.log('FFmpeg STDIN Error', e);
+    });
 
     this.instance.on('close', (code) => {
       console.log('ffmpeg closed')
