@@ -20,5 +20,5 @@ module.exports = [
   `-extra_window_size`, `10`,
   `-adaptation_sets`, `id=0,streams=v id=1,streams=a`,
   `-f`, `dash`,
-  `http://localhost:3104/manifest.mpd`
+  `output/manifest.mpd`
 ]

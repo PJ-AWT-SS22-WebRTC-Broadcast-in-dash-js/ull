@@ -1,0 +1,7 @@
+<Period>
+    <AdaptationSet
+        mimeType="video RTP/AVP"
+        xlink:rel="urn:ietf:params:whip:whpp"
+        xlink:href="http://localhost:8001/broadcaster/channel/014ff1d4-df76-4182-8a63-649de2b4c0df">
+    </AdaptationSet>
+</Period>

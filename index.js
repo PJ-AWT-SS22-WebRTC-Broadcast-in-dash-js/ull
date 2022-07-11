@@ -1,3 +1,4 @@
+const fs = require('fs')
 const express = require('express')
 const cors = require('cors')
 const compression = require('compression')
@@ -56,6 +57,13 @@ class UllServer {
           this.instance.stdin.write(data);
         }
       });
+      socket.on('webrtclink', (data) => {
+        console.log("webrtc link: ", data);
+        if (this.instance) {
+          this.webrtcLink = data;
+          this.readWriteAsync();
+        }
+      });
     });
 
     this.app.post('/stop', (req, res, next) => {
@@ -105,6 +113,8 @@ class UllServer {
       console.log('ffmpeg closed')
       console.log(`child process close all stdio with code ${code}`);
     })
+
+    this.watchManifest()
   }
 
   stopTranscoding () {
@@ -149,6 +159,40 @@ class UllServer {
         }
       })
     })
+  }
+
+  readWriteAsync() {
+    fs.readFile('webrtc_template.txt', 'utf-8', (err, data) => {
+      if (err) throw err;
+
+      let newValue = data.replace("channel_url", this.webrtcLink);
+
+      fs.writeFile('webrtc_template.txt', newValue, 'utf-8', (err) => {
+        if (err) throw err;
+        console.log('WebRTC link is updated.');
+      });
+    });
+  }
+
+  watchManifest() {
+    fs.watchFile("./output/manifest.mpd", (eventType, filename) => {
+      this.addWebRTClink2Manifest();
+    });
+  }
+
+  addWebRTClink2Manifest() {
+    fs.readFile('./output/manifest.mpd', 'utf-8', (err, data) => {
+      if (err) throw err;
+
+      let newValue = data.replace("<ProgramInformation>", 
+        "<ProgramInformation> \n" + "\t\t<Source> \n\t\t\t" + this.webrtcLink + "\n\t\t" + "</Source>");
+
+      fs.writeFile('./output/manifest.mpd', newValue, 'utf-8', (err) => {
+        if (err) throw err;
+        console.log('WebRTC link in manifest.mpd is updated.');
+      });
+    });
+  
   }
 
   isCached (filename) {
