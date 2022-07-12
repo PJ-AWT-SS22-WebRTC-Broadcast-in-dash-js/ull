@@ -12,7 +12,11 @@ curl -X POST http://localhost:3104/start -H 'Content-Type: application/json' -d 
 curl -X POST http://localhost:3104/start -H 'Content-Type: application/json' -d '{"videoname":"-","save":"1"}'
 
 
+## Then go to output directory and start the http-server
 
+```
+cd output & http-server --cors .
+```
 
 Recommended DASH player: https://reference.dashif.org/dash.js/v2.9.3/samples/dash-if-reference-player/index.html (make sure to enable low-latency by clicking `Show options`
 
