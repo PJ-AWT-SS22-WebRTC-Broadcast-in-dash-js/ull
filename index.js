@@ -184,8 +184,9 @@ class UllServer {
     fs.readFile('./output/manifest.mpd', 'utf-8', (err, data) => {
       if (err) throw err;
 
-      let newValue = data.replace("<ProgramInformation>", 
-        "<ProgramInformation> \n" + "\t\t<Source> \n\t\t\t" + this.webrtcLink + "\n\t\t" + "</Source>");
+      let newValue = data.replace("</Period>", 
+        "\t<AdaptationSet mimeType=\"video RTP/AVP\" \n\t\t\t" + "xlink:rel=\"urn:ietf:params:whip:whpp\"\n\t\t\txlink:href=\"" 
+          + this.webrtcLink + "\"\n\t\t" + "></AdaptationSet>\n\t</Period>");
 
       fs.writeFile('./output/manifest.mpd', newValue, 'utf-8', (err) => {
         if (err) throw err;
