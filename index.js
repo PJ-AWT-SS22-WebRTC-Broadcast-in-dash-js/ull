@@ -188,7 +188,7 @@ class UllServer {
         "\t<AdaptationSet mimeType=\"video RTP/AVP\" \n\t\t\t" + "xlink:rel=\"urn:ietf:params:whip:whpp\"\n\t\t\txlink:href=\"" 
           + this.webrtcLink + "\"\n\t\t" + "></AdaptationSet>\n\t</Period>");
 
-      fs.writeFile('./output/manifest.mpd', newValue, 'utf-8', (err) => {
+      fs.writeFile('./output/manifestWebrtc.mpd', newValue, 'utf-8', (err) => {
         if (err) throw err;
         console.log('WebRTC link in manifest.mpd is updated.');
       });
