@@ -119,6 +119,10 @@ class UllServer {
     })
 
     this.watchManifest()
+
+    // Spawn an http-server to serve chunks and manifest
+    const httpServerConfig = ["--cors", "./output/"]
+    this.chunkServer = childProcess.spawn('http-server', httpServerConfig)
   }
 
   stopTranscoding () {
