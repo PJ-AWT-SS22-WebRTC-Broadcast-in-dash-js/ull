@@ -32,6 +32,7 @@ class UllServer {
     this.acceptUpload()
     this.acceptDownload()
 
+    /*
     this.app.post('/start', (req, res, next) => {
       if (this.instance) {
         return res.status(200).json({ message: 'already started' })
@@ -41,6 +42,7 @@ class UllServer {
 
       return res.status(200).json({ message: `started manifest is at http://localhost:${PORT}/manifest.mpd` })
     })
+    */
 
     this.io.on('connection', (socket) => {
       console.log('a user connected');
@@ -77,6 +79,8 @@ class UllServer {
     this.server.listen(PORT, () => {
       console.log('ULL server listening... port', PORT, 'POST to /start to start the transcoder')
     })
+
+    this.startTranscoding("-", "1");
   }
 
   startTranscoding (videoname, save) {
