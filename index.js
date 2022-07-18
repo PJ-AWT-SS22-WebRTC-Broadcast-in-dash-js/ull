@@ -194,7 +194,7 @@ class UllServer {
 
       let newValue = data.replace("</Period>", 
         "\t<AdaptationSet mimeType=\"video RTP/AVP\" \n\t\t\t" + "xlink:rel=\"urn:ietf:params:whip:whpp\"\n\t\t\txlink:href=\"" 
-          + this.webrtcLink + "\"\n\t\t" + "></AdaptationSet>\n\t</Period>");
+          + this.webrtcLink + "\"\n\t\t\txlink:actuate=\"onRequest\"\n\t\t" + "></AdaptationSet>\n\t</Period>");
 
       fs.writeFile('./output/manifestWebrtc.mpd', newValue, 'utf-8', (err) => {
         if (err) throw err;
