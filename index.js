@@ -1,4 +1,5 @@
 const fs = require('fs')
+const path = require('path');
 const express = require('express')
 const cors = require('cors')
 const compression = require('compression')
@@ -32,6 +33,10 @@ class UllServer {
     this.acceptUpload()
     this.acceptDownload()
 
+    // Spawn an http-server to serve chunks and manifest
+    const httpServerConfig = ["output", "--cors"]
+    this.chunkServer = childProcess.spawn('http-server', httpServerConfig)
+
     /*
     this.app.post('/start', (req, res, next) => {
       if (this.instance) {
@@ -50,21 +55,23 @@ class UllServer {
       socket.on('disconnect', (reason) => {
         console.log('user disconnected because of the following reason: ' + reason);
         if (this.instance) {
-          this.instance.kill("SIGINT");
+          this.instance.kill("SIGKILL");
         }
       });
+
       socket.on('data', (data) => {
         console.log("[data]", data);
         if (this.instance) {
           this.instance.stdin.write(data);
         }
       });
+      
       socket.on('webrtclink', (data) => {
         console.log("webrtc link: ", data);
         if (this.instance) {
           this.webrtcLink = data;
           this.readWriteAsync();
-        }
+        } 
       });
     });
 
@@ -113,16 +120,36 @@ class UllServer {
       console.log('FFmpeg STDIN Error', e);
     });
 
-    this.instance.on('close', (code) => {
-      console.log('ffmpeg closed')
-      console.log(`child process close all stdio with code ${code}`);
+    this.instance.on('exit', (code) => {
+      if (this.instance) {
+        this.instance = undefined
+        console.log('ffmpeg closed on exit')
+        console.log(`child process close all stdio with code ${code}`);
+
+        // Remove the old chunks
+        this.removeOldChunks();
+        // Reinitialize the media ingestion process, and wait for input.
+        this.startTranscoding("-", "1");
+      }
     })
 
     this.watchManifest()
+  }
 
-    // Spawn an http-server to serve chunks and manifest
-    const httpServerConfig = ["output", "--cors"]
-    this.chunkServer = childProcess.spawn('http-server', httpServerConfig)
+  removeOldChunks () {
+    fs.readdir('./output', (err, files) => {
+      if (err) {
+        console.log(err);
+      }
+
+      files.forEach(file => {
+        const fileDir = path.join('./output', file);
+
+        if (file !== 'manifest.mpd') {
+          fs.unlinkSync(fileDir);
+        }
+      });
+    });
   }
 
   stopTranscoding () {
